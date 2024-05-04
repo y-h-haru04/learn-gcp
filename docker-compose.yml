@@ -1,0 +1,55 @@
+version: "3.9"
+
+services:
+  app:
+    build:
+      context: ./app
+      dockerfile: dockerfile.local
+    ports:
+      - 3000:3000
+      - 8000:8000
+    volumes:
+      - ./app/:/app/
+      # - /app/node_modules
+    # depends_on:
+    #   - gcp-emulator
+    # environment:
+    #   - FIRESTORE_EMULATOR_HOST=gcp-emulator:6641
+    tty: true
+
+  # firebase:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   volumes:
+  #     - ./.firebaserc:/opt/firebase/.firebaserc
+  #     - ./firebase.json:/opt/firebase/firebase.json
+  #     - ./firestore.indexes.json:/opt/firebase/firestore.indexes.json
+  #     - ./firestore.rules:/opt/firebase/firestore.rules
+  #     # - ./firebase/bin/:/root/.cache:cached
+  #     # - ./firebase/config/:/root/.config:cached
+  #     - ./functions:/opt/firebase/functions
+  #     - ./extensions:/opt/firebase/extensions
+  #   ports:
+  #     - 9099:9099 # Firebase Authentication
+  #     - 5001:5001 # Clound Functions
+  #     - 8080:8080 # Cloud Firestore
+  #     - 9000:9000 # Realtime Database
+  #     - 5000:5000 # Firebase Hosting
+  #     - 8085:8085 # Cloud Pub/Sub
+  #     - 9199:9199 # Cloud Storage
+  #     - 4000:4000 # Emulator Suite UI
+  #   working_dir: /opt/firebase
+  #   command: firebase emulators:start
+  # gcp-emulator:
+  #   image: gcr.io/google.com/cloudsdktool/cloud-sdk:473.0.0-emulators
+  #   ports:
+  #     - 6641:6641
+  #   command: gcloud beta emulators firestore start --host-port=gcp-emulator:6641
+
+  # web:
+  #   image: nginx:latest
+  #   ports:
+  #     - 80:80
+  #   volumes:
+  #     - ./web/conf.d/:/etc/nginx/conf.d
