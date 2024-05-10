@@ -11,102 +11,59 @@ import CommentItem from "./CommentItem";
 import { useParams } from "react-router-dom";
 import useCalcOffset from "../hooks/useCalcOffset";
 import { firestore } from "./../firebase";
-import { ChangeEvent, useCallback, useEffect, useMemo, useState } from "react";
-import { addDoc, collection, doc, getDoc, onSnapshot, orderBy, query, Timestamp, where } from "firebase/firestore";
-import CircleAvatar from "./CircleAvatar";
-import { User } from "../@types";
-import { AuthContextProps, useAuth } from "./AuthProvider";
-import useUsersSubscription from "../hooks/useUsersSubscription";
-
-type Post = {
-  id: string;
-  toUserId: string;
-  fromUserId: string;
-  content: string;
-  createdAt: string;
-  fromUser?: User;
-};
+import { ChangeEvent, useMemo, useState } from "react";
+import { addDoc, collection, Timestamp } from "firebase/firestore";
+import { CircleAvatar, useFirestore } from "common";
+import { AuthContextProps, useAuth } from "common";
 
 const UserDetailPage = () => {
   const params = useParams();
   const { currentUser } = useAuth() as AuthContextProps;
-  const { users } = useUsersSubscription()
   const { ref, offset } = useCalcOffset();
+  const { users, posts } = useFirestore();
 
-  const [input, setInput] = useState<string>('');
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [user, setUser] = useState<User | null>(null)
+  const [input, setInput] = useState<string>("");
 
   const onChangeInput = (e: ChangeEvent<HTMLInputElement>) => {
     setInput(e.target.value);
-  }
+  };
 
   const onClickPost = async () => {
-    addDoc(collection(firestore, 'posts'), {
+    addDoc(collection(firestore, "posts"), {
       content: input,
       fromUserId: currentUser?.id,
       toUserId: user?.id,
       createdAt: Timestamp.fromDate(new Date()),
-    })
-    setInput('');
-  }
-
-  const fetchUser = useCallback(async () => {
-    if (!params.userId) {
-      return;
-    }
-    const userDocRef = doc(firestore, 'users', params.userId)
-    const snapshot = await getDoc(userDocRef)
-    const data = snapshot.data()
-    if (data) {
-      setUser({ ...data, id: data.id } as User)
-    }
-  }, [params.userId])
-
-  useEffect(() => {
-    if (!params.userId) {
-      return;
-    }
-    const q = query(
-      collection(firestore, 'posts'),
-      where('toUserId', '==', params.userId),
-      orderBy('createdAt', 'desc')
-    )
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const newPosts: Post[] = []
-      snapshot.forEach((doc) => {
-        const data = doc.data();
-        newPosts.push({
-          ...data,
-          createdAt: data.createdAt.toDate().toLocaleString(),
-          id: doc.id,
-        } as Post);
-      })
-      setPosts(newPosts)
-    })
-
-    return () => {
-      unsubscribe();
-    }
-  }, [params.userId])
-  
-
-  useEffect(() => {
-    fetchUser();
-  }, [fetchUser]);
+    });
+    setInput("");
+  };
 
   const canPost = useMemo<boolean>(() => {
-    return input.length > 0
-  }, [input])
+    return input.length > 0;
+  }, [input]);
+
+  const user = useMemo(() => {
+    if (!params.userId) {
+      return null;
+    }
+    return users.find((user) => user.id === params.userId);
+  }, [users, params.userId]);
+
+  const targetPosts = useMemo(() => {
+    if (!params.userId) {
+      return [];
+    }
+    return posts.filter((post) => post.toUserId === params.userId);
+  }, [params.userId, posts]);
 
   const refinedPosts = useMemo(() => {
-    return posts.map((post) => {
+    return targetPosts.map((post) => {
       return {
         ...post,
-        fromUser: users.find((user) => user.id === post.fromUserId)
-      }
-    })
-  }, [users, posts])
+        fromUser: users.find((user) => user.id === post.fromUserId),
+      };
+    });
+  }, [users, targetPosts]);
 
   return (
     <>
@@ -119,7 +76,7 @@ const UserDetailPage = () => {
       >
         <Box sx={{ display: "flex", margin: "0 auto" }}>
           <Box sx={{ padding: "8px 12px" }}>
-            <CircleAvatar icon={user?.icon || ''} name={user?.name || ''} /> 
+            <CircleAvatar icon={user?.icon || ""} name={user?.name || ""} />
           </Box>
 
           <Box
@@ -150,9 +107,15 @@ const UserDetailPage = () => {
 
         <Divider />
 
-        <Box sx={{ display: "flex", margin: "8px 0", padding: "8px 16px", }}> 
-          <Input sx={{ flexGrow: 1, outline: "none" }} value={input} onChange={onChangeInput} />
-          <Button disabled={!canPost} onClick={onClickPost}>投稿</Button>
+        <Box sx={{ display: "flex", margin: "8px 0", padding: "8px 16px" }}>
+          <Input
+            sx={{ flexGrow: 1, outline: "none" }}
+            value={input}
+            onChange={onChangeInput}
+          />
+          <Button disabled={!canPost} onClick={onClickPost}>
+            投稿
+          </Button>
         </Box>
 
         <Box
@@ -165,8 +128,8 @@ const UserDetailPage = () => {
                 <CommentItem
                   key={post.id}
                   content={post.content}
-                  userName={post.fromUser?.name || ''}
-                  icon={post.fromUser?.icon || ''}
+                  userName={post.fromUser?.name || ""}
+                  icon={post.fromUser?.icon || ""}
                   postedAt={post.createdAt}
                 />
               );

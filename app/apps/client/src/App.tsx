@@ -1,85 +1,76 @@
-import {
-  AppBar,
-  Box,
-  Card,
-  Container,
-  List,
-  Toolbar,
-  Typography,
-} from "@mui/material";
 import AccountBoxIcon from "@mui/icons-material/AccountBoxOutlined";
 import MessageIcon from "@mui/icons-material/MessageOutlined";
-import LinkButton from "./components/LinkButtton";
-import { Navigate, Route, Routes } from "react-router-dom";
+import {
+  Navigate,
+  Outlet,
+  Route,
+  Routes,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
 import UserListPage from "./components/UserListPage";
-import ProfilePage from "./components/ProfilePage";
 import UserDetailPage from "./components/UserDetailPage";
-import { AuthContextProps, useAuth } from "./components/AuthProvider";
-import CircleAvatar from "./components/CircleAvatar";
+import {
+  Layout,
+  AuthProvider,
+  NotFoundPage,
+  ProfilePage,
+  FirestoreProvider,
+} from "common";
+import * as firebaseContext from "./firebase";
 
 function App() {
-  const { currentUser } = useAuth() as AuthContextProps;
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const onClickToTop = () => {
+    navigate("/");
+  };
 
   const links = [
     { title: "ユーザー一覧", to: "/users", icon: <MessageIcon /> },
     { title: "プロフィール", to: "/profile", icon: <AccountBoxIcon /> },
   ];
 
+  const onClickAvatar = () => {
+    navigate("/profile");
+  };
+
+  const onClickLink = (to: string) => {
+    navigate(to);
+  };
+
   return (
-      <>
-        <AppBar
-          position="static"
-          color="transparent"
-          sx={{ zIndex: 1000, position: "sticky" }}
-        >
-          <Container maxWidth="xl" sx={{ display: "flex" }}>
-            <Toolbar disableGutters sx={{ display: "flex", width: "100%" }}>
-              <Box sx={{ flexGrow: 1 }}>
-                <Box sx={{ display: 'flex' }}>
-                  <Typography className='emphasize' variant="h6" noWrap component="div">
-                    GCP Sample App
-                  </Typography>
-                </Box>
-              </Box>
-
-              <Box>
-                <CircleAvatar icon={currentUser?.icon || ''} name={currentUser?.name || ''}  /> 
-              </Box>
-            </Toolbar>
-          </Container>
-        </AppBar>
-
-        <Box sx={{ display: "flex", height: "calc(100vh - 64px)" }}>
-          <Card sx={{ minWidth: 200, borderRadius: 0, zIndex: 100 }}>
-            <List>
-              {links.map((link) => (
-                <LinkButton
-                  key={link.title}
-                  to={link.to}
-                  title={link.title}
-                  icon={link.icon}
-                ></LinkButton>
-              ))}
-            </List>
-          </Card>
-
-          <Box
-            sx={{
-              display: "flex",
-              flexGrow: 1,
-              flexDirection: "column",
-              margin: "16px",
-            }}
+    <AuthProvider firebaseContext={firebaseContext}>
+      <FirestoreProvider>
+        <Routes>
+          {/* <Route path={"/login"} element={<LoginPage />} /> */}
+          <Route
+            path="/"
+            element={
+              <Layout
+                title="GCP Sample Client App"
+                links={links}
+                pathname={location.pathname}
+                onClickAvatar={onClickAvatar}
+                onClickLink={onClickLink}
+              >
+                <Outlet />
+              </Layout>
+            }
           >
-            <Routes>
-              <Route path={"/"} element={<Navigate to="/users" />} />
-              <Route path={"/users"} element={<UserListPage />} />
-              <Route path={"/users/:userId"} element={<UserDetailPage />} />
-              <Route path={"/profile"} element={<ProfilePage />} />
-            </Routes>
-          </Box>
-        </Box>
-      </>
+            <Route index element={<Navigate to="/users" />} />
+            <Route path={"/users"} element={<UserListPage />} />
+            <Route path={"/users/:userId"} element={<UserDetailPage />} />
+            <Route path={"/profile"} element={<ProfilePage />} />
+            <Route
+              path={"*"}
+              element={<NotFoundPage onClickToTop={onClickToTop} />}
+            />
+          </Route>
+        </Routes>
+      </FirestoreProvider>
+    </AuthProvider>
   );
 }
 

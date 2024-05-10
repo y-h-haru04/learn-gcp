@@ -1,18 +1,18 @@
-import { Box, ListItem, Typography } from '@mui/material'
-import CircleAvatar from './CircleAvatar';
+import { Box, ListItem, Typography } from "@mui/material";
+import { CircleAvatar } from "common";
 
 type Props = {
   icon: string;
   userName: string;
-  postedAt: string
+  postedAt: string;
   content: string;
-}
+};
 
 const CommentItem = ({ icon, userName, postedAt, content }: Props) => {
   return (
-    <ListItem sx={{ display: 'flex' }}>
-      <Box sx={{ paddingRight: '8px' }}>
-        <CircleAvatar icon={icon} name={userName} /> 
+    <ListItem sx={{ display: "flex" }}>
+      <Box sx={{ paddingRight: "8px" }}>
+        <CircleAvatar icon={icon || ""} name={userName || ""} />
       </Box>
 
       <Box sx={{ flexGrow: 1 }}>
@@ -20,12 +20,10 @@ const CommentItem = ({ icon, userName, postedAt, content }: Props) => {
           <strong>{userName}</strong>
           <small>{postedAt}</small>
         </Box>
-        <Typography component="div">
-          {content} 
-        </Typography>
+        <Typography component="div">{content}</Typography>
       </Box>
     </ListItem>
-  )
-}
+  );
+};
 
-export default CommentItem
+export default CommentItem;
