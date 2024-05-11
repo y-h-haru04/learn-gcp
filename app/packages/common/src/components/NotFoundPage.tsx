@@ -7,15 +7,8 @@ type Props = {
 
 export const NotFoundPage = ({ onClickToTop }: Props) => {
   return (
-    <Box
-      sx={{
-        transform: "translateY(-50%) translateX(-50%)",
-        top: "50%",
-        left: "50%",
-        position: "absolute",
-      }}
-    >
-      <Card sx={{ width: "400px", margin: "0 auto", padding: "48px 16px" }}>
+    <Box sx={{ height: "100%", display: "flex" }}>
+      <Card sx={{ width: "400px", margin: "auto", padding: "48px 16px" }}>
         <Box sx={{ textAlign: "center" }}>
           <Avatar sx={{ bgcolor: "#1f6cfa", margin: "8px auto" }}>
             <QuestionMarkOutlined />
